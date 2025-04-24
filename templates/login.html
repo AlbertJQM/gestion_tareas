@@ -11,18 +11,28 @@
     </head>
     <body class="text-center">
         <main class="form-signin w-100 m-auto">
-            <form>
+            <div class="row my-3">
+                <div class="col-lg-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-dark">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/>
+                        </svg>
+                        Volver
+                    </a>
+                </div>
+            </div>
+            <form method="POST" action="{{ url_for('login') }}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="currentColor" class="bi bi-person-badge-fill" viewBox="0 0 16 16">
                     <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm4.5 0a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zM8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6m5 2.755C12.146 12.825 10.623 12 8 12s-4.146.826-5 1.755V14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1z"/>
                 </svg>
                 <h1 class="h3 mb-3 fw-normal">Por favor, inicia sesión</h1>
                 <div class="form-floating mb-3">
-                    <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">
-                    <label for="floatingInput">Correo electrónico</label>
+                    <input type="email" class="form-control" name="correo" id="correo" placeholder="name@example.com" autofocus required>
+                    <label for="correo">Correo electrónico</label>
                 </div>
                 <div class="form-floating">
-                    <input type="password" class="form-control" id="floatingPassword" placeholder="Contraseña">
-                    <label for="floatingPassword">Contraseña</label>
+                    <input type="password" class="form-control" name="contrasena" id="contrasena" placeholder="Contraseña" required>
+                    <label for="contrasena">Contraseña</label>
                 </div>
                 <button class="w-100 btn btn-lg btn-primary" type="submit">Ingresar</button>
                 <label class="form-label">¿No tienes una cuenta? Regístrate.</label>
