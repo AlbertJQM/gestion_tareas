@@ -2,6 +2,7 @@ from flask import Flask, render_template, redirect, url_for, request, session
 from config import Config
 from models import db, Usuario, Tarea
 from functools import wraps
+from datetime import datetime
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -69,7 +70,7 @@ def signup():
 @app.route('/tasks')
 @login_required
 def list_tasks():
-    filtro = request.args.get('filtro')
+    filtro = request.args.get('filtro', default='pendiente')
     if filtro == 'pendiente':
         tareas = Tarea.query.filter_by(usuario_id=session['usuario_id'], completada=False).all()
     elif filtro == 'completada':
@@ -88,22 +89,61 @@ def list_tasks():
 @app.route('/task/<int:id>')
 @login_required
 def view_task(id):
-    return render_template('task.html')
+    tarea = Tarea.query.get_or_404(id)
+    return render_template('task.html', tarea=tarea)
 
 @app.route('/task/create', methods=['GET', 'POST'])
 @login_required
 def create_task():
+    if request.method == 'POST':
+        # Aquí iría la lógica para crear una nueva tarea
+        titulo = request.form['titulo']
+        descripcion = request.form['descripcion']
+        fecha_vencimiento = datetime.strptime(request.form['fecha'],'%Y-%m-%d')
+        prioridad = request.form['prioridad']
+        
+        try:        
+            nueva_tarea = Tarea(titulo=titulo, descripcion=descripcion, fecha_vencimiento=fecha_vencimiento, prioridad=prioridad, usuario_id=session['usuario_id'])
+            db.session.add(nueva_tarea)
+            db.session.commit()
+            return redirect(url_for('list_tasks'))
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error al crear la tarea: {e}")
     return render_template('create_task.html')
 
 @app.route('/task/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_task(id):
-    return render_template('edit_task.html')
+    tarea = Tarea.query.get_or_404(id)
+    if request.method == 'POST':
+        # Aquí iría la lógica para editar una tarea existente
+        tarea.titulo = request.form['titulo']
+        tarea.descripcion = request.form['descripcion']
+        tarea.fecha_vencimiento = request.form['fecha_vencimiento']
+        tarea.prioridad = request.form['prioridad']
+        
+        try:
+            db.session.commit()
+            return redirect(url_for('list_tasks'))
+        except Exception as e:
+            db.session.rollback()
+    return render_template('edit_task.html', tarea=tarea)
 
 @app.route('/task/delete/<int:id>', methods=['POST'])
 @login_required
 def delete_task(id):
-    redirect(url_for('list_tasks'))
+    tarea = Tarea.query.get_or_404(id)
+    try:
+        db.session.delete(tarea)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+    return redirect(url_for('list_tasks'))
+
+def not_found(error):
+    return render_template('404.html'), 404
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.register_error_handler(404, not_found)
+    app.run(debug=True, host='127.0.0.1', port=5000)

@@ -21,7 +21,7 @@
                         </a>
                     </div>
                 </div>
-                <form class="row g-3">
+                <form class="row g-3" method="POST" action="{{ url_for('create_task') }}">
                     <div class="form-group col-md-6">
                         <label for="titulo">Título</label>
                         <input type="text" name="titulo" id="titulo" class="form-control" required>
