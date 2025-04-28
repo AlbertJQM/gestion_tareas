@@ -70,20 +70,21 @@ def signup():
 @app.route('/tasks')
 @login_required
 def list_tasks():
-    filtro = request.args.get('filtro', default='pendiente')
-    if filtro == 'pendiente':
-        tareas = Tarea.query.filter_by(usuario_id=session['usuario_id'], completada=False).all()
-    elif filtro == 'completada':
-        tareas = Tarea.query.filter_by(usuario_id=session['usuario_id'], completada=True).all()
-    else:
-        filtro = ''
-        tareas = Tarea.query.filter_by(usuario_id=session['usuario_id']).all()
-    
+    filtro = request.args.get('filtro', default='todas')
+    tareas = Tarea.query.filter_by(usuario_id=session['usuario_id']).all()
     cantidad_tareas = {
         'todas': len(tareas),
         'pendientes': sum(1 for tarea in tareas if not tarea.completada),
         'completadas': sum(1 for tarea in tareas if tarea.completada)
     }
+    if filtro == 'pendiente':
+        tareas = Tarea.query.filter_by(usuario_id=session['usuario_id'], completada=False).all()
+    elif filtro == 'completada':
+        tareas = Tarea.query.filter_by(usuario_id=session['usuario_id'], completada=True).all()
+    else:
+        filtro = 'todas'
+    
+    print(filtro, cantidad_tareas)
     return render_template('tasks.html', tareas=tareas, filtro=filtro, cantidad_tareas=cantidad_tareas)
 
 @app.route('/task/<int:id>')
@@ -136,6 +137,17 @@ def delete_task(id):
     tarea = Tarea.query.get_or_404(id)
     try:
         db.session.delete(tarea)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+    return redirect(url_for('list_tasks'))
+
+@app.route('/task/complete/<int:id>', methods=['POST'])
+@login_required
+def complete_task(id):
+    tarea = Tarea.query.get_or_404(id)
+    try:
+        tarea.completada = not tarea.completada    
         db.session.commit()
     except Exception as e:
         db.session.rollback()

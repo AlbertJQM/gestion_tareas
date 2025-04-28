@@ -56,14 +56,12 @@
                         {{ tarea.descripcion }}
                     </p>
                     <div class="d-flex justify-content-between mt-4">
-                        <div class="form-check form-switch col-lg-6">
-                            {% if tarea.completada %}
-                            <input class="form-check-input" type="checkbox" role="switch" id="completado" name="completado" value=1 checked>
-                            {% else %}
-                            <input class="form-check-input" type="checkbox" role="switch" id="completado" name="completado" value=0>
-                            {% endif %}
-                            <label class="form-check-label" for="completado">Mark as Completed</label>
-                        </div>
+                        <form action="{{ url_for('complete_task', id=tarea.id) }}" method="POST" class="col-lg-6" onchange="this.submit()">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="completado" name="completado" {% if tarea.completada %}checked{% endif %}> 
+                                <label class="form-check-label" for="completado">Marcar como Completedo</label>
+                            </div>
+                        </form>
                         <div class="d-flex gap-2">
                             <a href="{{ url_for('edit_task', id=tarea.id) }}" class="btn btn-outline-primary">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
