@@ -20,29 +20,29 @@
                         </a>
                     </div>
                 </div>
-                <form class="row g-3">
+                <form action="{{ url_for('edit_task', id=tarea.id) }}" method="POST" class="row g-3">
                     <div class="form-group col-md-6">
                         <label for="titulo">Título</label>
-                        <input type="text" name="titulo" id="titulo" class="form-control" required>
+                        <input type="text" name="titulo" id="titulo" class="form-control" required value="{{ tarea.titulo }}" autofocus>
                     </div>
                     <div class="form-group col-md-12">
                         <label for="descripcion">Descripción</label>
-                        <textarea name="descripcion" id="descripcion" class="form-control"></textarea>
+                        <textarea name="descripcion" id="descripcion" class="form-control">{{ tarea.descripcion }}</textarea>
                     </div>
                     <div class="form-group col-md-3">
                         <label for="fecha" class="form-label">Fecha de culminación</label>
-                        <input type="date" name="fecha" id="fecha" class="form-control" required>
+                        <input type="date" name="fecha" id="fecha" class="form-control" required value={{ tarea.fecha_vencimiento }}>
                     </div>
                     <div class="form-group col-md-3">
                         <label for="prioridad" class="form-label">Prioridad</label>
                         <select name="prioridad" id="prioridad" class="form-control" required>
-                            <option value="Baja">Baja</option>
-                            <option value="Media" selected>Media</option>
-                            <option value="Alta">Alta</option>
+                            <option value="Baja" {% if tarea.prioridad == 'Baja' %}selected{% endif %}>Baja</option>
+                            <option value="Media" {% if tarea.prioridad == 'Media' %}selected{% endif %}>Media</option>
+                            <option value="Alta" {% if tarea.prioridad == 'Alta' %}selected{% endif %}>Alta</option>
                         </select>
                     </div>
                     <div class="form-group form-check form-switch col-md-12">
-                        <input class="form-check-input" type="checkbox" role="switch" id="completado" name="completado">
+                        <input class="form-check-input" type="checkbox" role="switch" id="completado" name="completado" {% if tarea.completada %}checked{% endif %}>
                         <label class="form-check-label" for="completado">Marcar como Completado</label>
                     </div>
                     <div class="p-2">

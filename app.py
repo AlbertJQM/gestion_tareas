@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, session
+from flask import Flask, render_template, redirect, url_for, request, session, flash
 from config import Config
 from models import db, Usuario, Tarea
 from functools import wraps
@@ -17,6 +17,7 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'usuario_id' not in session:
+            flash('Debes iniciar sesión para acceder', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -39,8 +40,10 @@ def login():
             # Aquí iría la lógica para iniciar sesión
             session['usuario_id'] = usuario.id
             session['usuario_nombre'] = usuario.nombre
+            flash('¡Inicio de sesión exitoso!', 'success')
             return redirect(url_for('list_tasks'))
-        
+        else:
+            flash('Correo o contraseña incorrectos', 'danger')
     return render_template('login.html')
 
 @app.route('/logout')
@@ -48,6 +51,7 @@ def login():
 def logout():
     # Elimina la sesión del usuario
     session.clear()
+    flash('Has cerrado sesión correctamente', 'info')
     return redirect(url_for('login'))
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -58,13 +62,15 @@ def signup():
         correo = request.form['correo']
         contrasena = request.form['contrasena']
         
-        nuevo_usuario = Usuario(nombre=nombre, correo=correo)
-        nuevo_usuario.set_password(contrasena)
-        
-        db.session.add(nuevo_usuario)
-        db.session.commit()
-        
-        return redirect(url_for('login'))
+        if Usuario.query.filter_by(correo=correo).first():
+            flash('Este correo ya está registrado', 'danger')
+        else:
+            nuevo_usuario = Usuario(nombre=nombre, correo=correo)
+            nuevo_usuario.set_password(contrasena)
+            db.session.add(nuevo_usuario)
+            db.session.commit()
+            flash('¡Registro exitoso! Ahora puedes iniciar sesión', 'success')
+            return redirect(url_for('login'))
     return render_template('signup.html')
 
 @app.route('/tasks')
@@ -84,7 +90,6 @@ def list_tasks():
     else:
         filtro = 'todas'
     
-    print(filtro, cantidad_tareas)
     return render_template('tasks.html', tareas=tareas, filtro=filtro, cantidad_tareas=cantidad_tareas)
 
 @app.route('/task/<int:id>')
@@ -107,10 +112,11 @@ def create_task():
             nueva_tarea = Tarea(titulo=titulo, descripcion=descripcion, fecha_vencimiento=fecha_vencimiento, prioridad=prioridad, usuario_id=session['usuario_id'])
             db.session.add(nueva_tarea)
             db.session.commit()
+            flash('Tarea creada exitosamente!', 'success')
             return redirect(url_for('list_tasks'))
         except Exception as e:
             db.session.rollback()
-            print(f"Error al crear la tarea: {e}")
+            flash(f'Error al crear tarea: {str(e)}', 'danger')
     return render_template('create_task.html')
 
 @app.route('/task/edit/<int:id>', methods=['GET', 'POST'])
@@ -121,14 +127,17 @@ def edit_task(id):
         # Aquí iría la lógica para editar una tarea existente
         tarea.titulo = request.form['titulo']
         tarea.descripcion = request.form['descripcion']
-        tarea.fecha_vencimiento = request.form['fecha_vencimiento']
+        tarea.fecha_vencimiento = datetime.strptime(request.form['fecha'],'%Y-%m-%d')
         tarea.prioridad = request.form['prioridad']
+        tarea.completada = request.form.get('completado') == 'on'
         
         try:
             db.session.commit()
-            return redirect(url_for('list_tasks'))
+            flash('Tarea actualizada correctamente', 'success')
+            return redirect(url_for('view_task', id=tarea.id))
         except Exception as e:
             db.session.rollback()
+            flash(f'Error al actualizar tarea: {str(e)}', 'danger')
     return render_template('edit_task.html', tarea=tarea)
 
 @app.route('/task/delete/<int:id>', methods=['POST'])
@@ -138,8 +147,10 @@ def delete_task(id):
     try:
         db.session.delete(tarea)
         db.session.commit()
+        flash('Tarea eliminada correctamente', 'success')
     except Exception as e:
         db.session.rollback()
+        flash(f'Error al eliminar tarea: {str(e)}', 'danger')
     return redirect(url_for('list_tasks'))
 
 @app.route('/task/complete/<int:id>', methods=['POST'])

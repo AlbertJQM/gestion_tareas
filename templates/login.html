@@ -11,6 +11,16 @@
     </head>
     <body class="text-center">
         <main class="form-signin w-100 m-auto">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
             <div class="row my-3">
                 <div class="col-lg-4">
                     <a href="{{ url_for('index') }}" class="btn btn-outline-dark">
@@ -36,9 +46,10 @@
                 </div>
                 <button class="w-100 btn btn-lg btn-primary" type="submit">Ingresar</button>
                 <label class="form-label">¿No tienes una cuenta? Regístrate.</label>
-                <a href="{{ url_for('signup') }}" class="w-100 btn btn-lg btn-primary" type="button">Regístrate</a>
+                <a href="{{ url_for('signup') }}" class="w-100 btn btn-lg btn-primary">Regístrate</a>
                 <p class="mt-5 mb-3 text-muted">© 2025 Microsoft Education Hub - ITDB</p>
             </form>
         </main>
+        <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
     </body>
 </html>
