@@ -3,6 +3,7 @@ from config import Config
 from models import db, Usuario, Tarea
 from functools import wraps
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -169,4 +170,4 @@ def not_found(error):
 
 if __name__ == '__main__':
     app.register_error_handler(404, not_found)
-    app.run(debug=True, host='127.0.0.1', port=5000)
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

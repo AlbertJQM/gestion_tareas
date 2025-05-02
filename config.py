@@ -3,18 +3,45 @@ from urllib.parse import urlparse
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-class Config():
+class Config:
+    # Configuración general
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'mi-clave-secreta')
     
-    # Configuración para desarrollo/producción
-    if os.environ.get('DATABASE_URL'):  # Entorno de producción (Heroku)
-        uri = os.environ['DATABASE_URL']
-        if uri.startswith("postgres://"):
-            uri = uri.replace("postgres://", "postgresql://", 1)  # Solución para Heroku
-        SQLALCHEMY_DATABASE_URI = uri
-    else:  # Entorno local
-        SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:muyiga128@localhost:5432/app_db'
+    # Configuración de PostgreSQL
+    @property
+    def SQLALCHEMY_DATABASE_URI(self):
+        # Obtener DATABASE_URL de Railway
+        db_url = os.environ.get('DATABASE_URL')
+        
+        if db_url:
+            # Railway usa formato postgresql:// directamente
+            if db_url.startswith("postgres://"):
+                db_url = db_url.replace("postgres://", "postgresql://", 1)
+            return db_url
+        else:
+            # Configuración local de desarrollo
+            return 'postgresql://postgres:muyiga128@localhost:5432/app_db'
+    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'mi-clave-secreta'
+
+    # Configuración adicional para producción
+    @property
+    def POSTGRES_CONFIG(self):
+        """Extrae componentes individuales de la conexión para otros usos"""
+        if not hasattr(self, '_postgres_config'):
+            db_url = self.SQLALCHEMY_DATABASE_URI
+            if db_url:
+                result = urlparse(db_url)
+                self._postgres_config = {
+                    'host': result.hostname,
+                    'port': result.port,
+                    'user': result.username,
+                    'password': result.password,
+                    'database': result.path[1:]  # Elimina el / inicial
+                }
+            else:
+                self._postgres_config = None
+        return self._postgres_config
 
     """
     # Configuración de SQLAlchemy
